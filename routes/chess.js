@@ -5,22 +5,14 @@ const router = express.Router()
 const Board = require('../models/board')
 
 var board = new Board()
-var prevPos = undefined
+var cursor = undefined
 
 router.get('/', (req, res, next) => {
-    var mappedBoard = []
-    for (let r = 0; r < 8; r++) {
-        var currRow = []
-        for (let c = 0; c < 8; c++) {
-            var cellState = board.state[r][c]
-            if (cellState) currRow.push(cellState.name)
-            else currRow.push("")
-        }
-        mappedBoard.push(currRow)
-    }
+    console.log(req.query.player)
     return res.render('chessview', {
-        board: mappedBoard,
-        cursor: prevPos
+        board: board.getMapping(),
+        cursor: cursor,
+        player: req.query.player || "white"
     })
 })
 
@@ -29,30 +21,40 @@ router.post('/', (req, res, next) => {
     if (!req.body.row) return res.redirect('/')
     var row = parseInt(req.body.row)
     var col = parseInt(req.body.col)
-    var currPos = [row, col]
-    console.log('prev-pos', prevPos)
-    console.log('curr-pos', currPos)
-    if (!prevPos) {
-        prevPos = [row, col]
+    
+    var newPos = [row, col]
+    console.log('prev-pos', cursor)
+    console.log('new-pos', newPos)
+    
+    // set the cursor if not
+    if (!cursor) {
+        cursor = [row, col]
     }
-    else if (prevPos[0] == row && prevPos[1] == col) {
-        console.log('same')
-        prevPos = undefined
+    
+    // check if board contains piece at cursor
+    else if (board.hasPiece(cursor)) {
+        // move the piece at cursor to new-pos
+        board.move(cursor, newPos)
+        cursor = undefined
     }
     else {
-        var prow = prevPos[0]
-        var pcol = prevPos[1]
-        board.state[row][col] = board.state[prow][pcol]
-        board.state[prow][pcol] = undefined
-        prevPos = undefined
+        cursor = undefined
     }
-    return res.redirect('/')
+    return res.redirect('/?player='+req.body.player)
 })
 
-router.post('/start-new', (req, res, next) => {
-    console.log("----------restarting---------")
-    board = new Board()
-    prevPos = undefined
+router.post('/action', (req, res, next) => {
+    var action = req.body.action
+    if (action === 'undo') {
+        console.log('-------------undo-----------')
+        board.removeLastState()
+        cursor = undefined
+    }
+    else if (action === 'restart') {
+        console.log("----------restarting---------")
+        board = new Board()
+        cursor = undefined
+    }
     return res.redirect('/')
 })
 
