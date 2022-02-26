@@ -1,3 +1,4 @@
+/* TABLE-STYLE */
 table,
 tr,
 td {
@@ -17,12 +18,22 @@ h1 {
   color: blue;
 }
 
+/* OTHER STYLE */
+.top-bar {
+  display: inline-block;
+}
+
+/* CHESS-LOGIC */
 .white {
   background-color: white;
 }
 
 .black {
   background-color: burlywood;
+}
+
+.focus {
+  border: 2px solid red;
 }
 
 .blackRook {
