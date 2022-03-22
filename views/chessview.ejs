@@ -5,22 +5,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <link rel="stylesheet" href="/css/main.css">
-        <!-- <script>
-            function autoRefresh() {
-                window.location = window.location.href;
-            }
-            setInterval('autoRefresh()', 5000);
-        </script> -->
         <script src="/socket.io/socket.io.js"></script>
-        <script src="/js/socket.js" type="module"></script>
+        
     </head>
     <body>
         <div>
             <h1 class="top-bar">WoodyChess</h1>
-            <form class="top-bar" method="POST" action="/action">
-                <button type="submit" name="action" value="restart">Restart</button>
-                <button type="submit" name="action" value="undo">Undo</button>
-            </form>
+            <div>
+                <button type="submit" id="restart" name="action" value="restart">Restart</button>
+                <button type="submit" id="undo" name="action" value="undo">Undo</button>
+            </div>
             <a class="top-bar" href="/?player=white">
                 <button type="submit" name="player" value="white">White</button>
             </a>
@@ -29,53 +23,33 @@
             </a>
         </div>
         <% if (player==="white") { %>
-            <table class="board">
+            <table class="board white">
                 <% for (let row = 0; row < 8; row++) { %> 
-                <tr>
+                <tr class="row-<%=row%>">
                     <% for (let col = 0; col < 8; col++) { %>
-                        <form id="<%=row*8+col%>" method="POST" action="/">
-                            <td 
-                            class="
-                                    <%=board[row][col]%> 
-                                    <%= (row+col)&1 ? "black" : "white" %>
-                                    <%= (cursor!==undefined && cursor[0]===row && cursor[1] === col) ? "focus" : "" %>
-                                    "
-                                    onclick="document.getElementById(<%=row*8+col%>).submit();"
-                                    >
-                                    <input type="hidden" name="row" value="<%=row%>">
-                                    <input type="hidden" name="col" value="<%=col%>">
-                                    <input type="hidden" name="player" value="white"
-                                </td>
-                            </form>
+                        <td class="col-<%=col%>"></td>
                     <% } %>
                 </tr>
                 <% } %>
             </table>
         <% } %>
 
-        <% if (player === "black") {%>
-            <table class="board">
+        <% if (player==="black") { %>
+            <table class="board white">
                 <% for (let row = 7; row >= 0; row--) { %> 
-                <tr>
+                <tr class="row-<%=row%>">
                     <% for (let col = 7; col >= 0; col--) { %>
-                        <form id="<%=row*8+col%>" method="POST" action="/">
-                            <td 
-                                class="
-                                    <%=board[row][col]%> 
-                                    <%= (row+col)&1 ? "black" : "white" %>
-                                    <%= (cursor!==undefined && cursor[0]===row && cursor[1] === col) ? "focus" : "" %>
-                                "
-                                onclick="document.getElementById(<%=row*8+col%>).submit();"
-                            >
-                                <input type="hidden" name="row" value="<%=row%>">
-                                <input type="hidden" name="col" value="<%=col%>">
-                                <input type="hidden" name="player" value="black"
-                            </td>
-                        </form>
+                        <td class="col-<%=col%>"></td>
                     <% } %>
                 </tr>
                 <% } %>
             </table>
         <% } %>
+        <script 
+            src="/js/socket.js"
+            board='<%- board ? JSON.stringify(board) : "null" %>'
+            player='<%- player ? JSON.stringify(player) : "null" %>'
+            cursor='<%- cursor ? JSON.stringify(cursor) : "null" %>'
+        ></script>
     </body>
 </html>

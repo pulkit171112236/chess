@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="/css/main.css">
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/socket.js" type="module"></script>
+    </head>
+    <body>
+        <div>
+            <h1 class="top-bar">WoodyChess</h1>
+            <form class="top-bar" method="POST" action="/action">
+                <button type="submit" name="action" value="restart">Restart</button>
+                <button type="submit" name="action" value="undo">Undo</button>
+            </form>
+            <a class="top-bar" href="/?player=white">
+                <button type="submit" name="player" value="white">White</button>
+            </a>
+            <a class="top-bar" href="/?player=black">
+                <button type="submit" name="player" value="black">Black</button>
+            </a>
+        </div>
+        <% if (player==="white") { %>
+            <table class="board">
+                <% for (let row = 0; row < 8; row++) { %> 
+                <tr>
+                    <% for (let col = 0; col < 8; col++) { %>
+                        <form id="<%=row*8+col%>" method="POST" action="/">
+                            <td 
+                            class="
+                                    <%=board[row][col]%> 
+                                    <%= (row+col)&1 ? "black" : "white" %>
+                                    <%= (cursor!==undefined && cursor[0]===row && cursor[1] === col) ? "active" : "" %>
+                                    "
+                                    onclick="document.getElementById(<%=row*8+col%>).submit();"
+                                    >
+                                    <input type="hidden" name="row" value="<%=row%>">
+                                    <input type="hidden" name="col" value="<%=col%>">
+                                    <input type="hidden" name="player" value="white"
+                                </td>
+                            </form>
+                    <% } %>
+                </tr>
+                <% } %>
+            </table>
+        <% } %>
+
+        <% if (player === "black") {%>
+            <table class="board">
+                <% for (let row = 7; row >= 0; row--) { %> 
+                <tr>
+                    <% for (let col = 7; col >= 0; col--) { %>
+                        <form id="<%=row*8+col%>" method="POST" action="/">
+                            <td 
+                                class="
+                                    <%=board[row][col]%> 
+                                    <%= (row+col)&1 ? "black" : "white" %>
+                                    <%= (cursor!==undefined && cursor[0]===row && cursor[1] === col) ? "active" : "" %>
+                                "
+                                onclick="document.getElementById(<%=row*8+col%>).submit();"
+                            >
+                                <input type="hidden" name="row" value="<%=row%>">
+                                <input type="hidden" name="col" value="<%=col%>">
+                                <input type="hidden" name="player" value="black"
+                            </td>
+                        </form>
+                    <% } %>
+                </tr>
+                <% } %>
+            </table>
+        <% } %>
+    </body>
+</html>

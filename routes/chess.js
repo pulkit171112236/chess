@@ -5,42 +5,50 @@ const Board = require('../models/board')
 const socket = require('../socket')
 
 var board = new Board()
-var cursor = undefined
 
 router.get('/', (req, res, next) => {
   console.log(req.query.player)
   return res.render('chessview', {
     board: board.getMapping(),
-    cursor: cursor,
+    cursor: null,
     player: req.query.player || 'white',
   })
 })
 
 router.post('/', (req, res, next) => {
   console.log(req.body)
-  if (!req.body.row) return res.redirect('/')
-  var row = parseInt(req.body.row)
-  var col = parseInt(req.body.col)
 
-  var newPos = [row, col]
+  const from = req.body.from
+  const to = req.body.to
+
+  var cursor = [from.row, from.col]
+  var newPos = [to.row, to.col]
+
   console.log('prev-pos', cursor)
   console.log('new-pos', newPos)
 
-  // set the cursor if not
-  if (!cursor) {
-    cursor = [row, col]
-  }
-
   // check if board contains piece at cursor
-  else if (board.hasPiece(cursor)) {
+  if (board.hasPiece(cursor)) {
     // move the piece at cursor to new-pos
     board.move(cursor, newPos)
-    cursor = undefined
+    // emiting message to all connected clients
+    socket.getIo().emit('event', {
+      action: 'move',
+      from: from,
+      to: to,
+    })
+    // returning response
+    res.status(200).json({
+      message: 'success',
+      action: 'move',
+    })
   } else {
-    cursor = undefined
+    const err = new Error('Move not allowed')
+    err.statusCode = 405
+    throw err
   }
-  socket.getIo().emit('event')
-  return res.redirect('/?player=' + req.body.player)
+
+  // return res.redirect('/?player=' + req.body.player)
 })
 
 router.post('/action', (req, res, next) => {
@@ -48,14 +56,15 @@ router.post('/action', (req, res, next) => {
   if (action === 'undo') {
     console.log('-------------undo-----------')
     board.removeLastState()
-    cursor = undefined
   } else if (action === 'restart') {
     console.log('----------restarting---------')
     board = new Board()
-    cursor = undefined
   }
-  socket.getIo().emit('event')
-  return res.redirect('/')
+  // emiting message to all connected clients
+  socket.getIo().emit('event', {
+    action: action,
+  })
+  // return res.redirect('/')
 })
 
 module.exports = router
