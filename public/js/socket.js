@@ -1,26 +1,42 @@
 console.log('------client-socket--------')
-const socket = io()
-socket.on('event', (data) => {
-  console.log('--event---')
-  location.reload()
-  // fetch('')
-  // if (data.action === 'restart' || data.action === 'undo') {
-  //   fetch('')
-  // } else if (data.action === 'move') {
-  //   const from = data.from
-  //   const to = data.to
-
-  // }
-})
 
 // getting data from ejs
 function getEjsData(element) {
   return JSON.parse(document.currentScript.getAttribute(element))
 }
 
+// declaring data passed from ejs
 var board = getEjsData('board')
 var cursor = getEjsData('cursor')
 var player = getEjsData('player')
+
+// updating class
+function updateClassForCell(row, col) {
+  var cell = document.querySelector(`.row-${row} .col-${col}`)
+  cell.className = 'col-' + col
+  cell.classList.add((row + col) & 1 ? 'black' : 'white')
+  if (board[row][col]) {
+    cell.classList.add(board[row][col])
+  }
+}
+
+// implementing client socket
+const socket = io()
+socket.on('event', (data) => {
+  console.log('--event---')
+  if (data.action === 'restart' || data.action === 'undo') {
+    location.reload()
+  } else if (data.action === 'move') {
+    const from = data.from
+    const to = data.to
+    // replace to with from
+    const fromPiece = board[from.row][from.col]
+    delete board[from.row][from.col]
+    board[to.row][to.col] = fromPiece
+    updateClassForCell(to.row, to.col)
+    updateClassForCell(from.row, from.col)
+  }
+})
 
 let state = 'ready'
 let from, to
@@ -28,12 +44,10 @@ let from, to
 // click event handler
 const handleClick = (event) => {
   const cell = event.target
-  let col = cell.classList[0].split('-')[1]
-  let row = cell.parentNode.classList[0].split('-')[1]
-  console.log(row, col)
+  let col = parseInt(cell.classList[0].split('-')[1])
+  let row = parseInt(cell.parentNode.classList[0].split('-')[1])
 
   if (state === 'ready') {
-    console.log('state -> active')
     state = 'active'
     cell.classList.add('active')
     from = {
@@ -46,7 +60,6 @@ const handleClick = (event) => {
       col: col,
     }
 
-    console.log('state -> ready')
     state = 'ready'
     var activeCell = document.querySelector(`.row-${from.row} .col-${from.col}`)
     activeCell.classList.remove('active')
